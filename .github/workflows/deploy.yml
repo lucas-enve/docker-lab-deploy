@@ -3,22 +3,22 @@ name: Build and Deploy Docker image to EC2
 on:
   push:
     branches:
-      - main
+      - main  # Se ejecutará cuando hagas un push a la rama principal
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest  # Ejecutar en un entorno Ubuntu
 
     steps:
-    # 1. Check out el código del repositorio
+    # 1. Checkout el código del repositorio
     - name: Checkout repository
       uses: actions/checkout@v3
 
-    # 2. Configurar Docker Buildx (opcional pero recomendado para mejorar la construcción)
+    # 2. Configurar Docker Buildx (opcional, mejora la construcción)
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
 
-    # 3. Configurar Docker Hub login
+    # 3. Configurar login en Docker Hub
     - name: Log in to Docker Hub
       uses: docker/login-action@v2
       with:
@@ -28,17 +28,17 @@ jobs:
     # 4. Construir la imagen de Docker
     - name: Build Docker image
       run: |
-        docker build -t my-nginx-app .
+        docker build -t ${{ secrets.DOCKER_USERNAME }}/my-nginx-app .
 
-    # 5. Subir la imagen a Docker Hub
-    - name: Push Docker image to Docker Hub
+    # 5. Etiquetar y empujar la imagen a Docker Hub
+    - name: Tag and Push Docker image to Docker Hub
       run: |
-        docker push my-nginx-app
+        docker push ${{ secrets.DOCKER_USERNAME }}/my-nginx-app:latest
 
-    # 6. Desplegar la imagen a la instancia EC2
+    # 6. Desplegar la imagen a EC2
     - name: Deploy to EC2
       run: |
         ssh -i "${{ secrets.EC2_SSH_KEY }}" -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} << EOF
-          docker pull my-nginx-app
-          docker run -d -p 80:80 my-nginx-app
+          docker pull ${{ secrets.DOCKER_USERNAME }}/my-nginx-app:latest
+          docker run -d -p 80:80 ${{ secrets.DOCKER_USERNAME }}/my-nginx-app:latest
         EOF
