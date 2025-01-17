@@ -38,7 +38,15 @@ jobs:
     # 6. Desplegar la imagen a EC2
     - name: Deploy to EC2
       run: |
+        # Conectar a la instancia EC2 y desplegar la aplicación
         ssh -i "${{ secrets.EC2_SSH_KEY }}" -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} << EOF
+          # Instalar Docker si no está instalado
+          sudo yum update -y
+          sudo yum install -y docker
+          sudo systemctl start docker
+          sudo systemctl enable docker
+
+          # Descargar la imagen desde Docker Hub y ejecutarla
           docker pull ${{ secrets.DOCKER_USERNAME }}/my-nginx-app:latest
           docker run -d -p 80:80 ${{ secrets.DOCKER_USERNAME }}/my-nginx-app:latest
         EOF
