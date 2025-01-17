@@ -38,9 +38,13 @@ jobs:
     # 6. Desplegar la imagen a EC2
     - name: Deploy to EC2
       run: |
+        # Crear un archivo temporal con el nombre correcto para la clave privada
+        echo "${{ secrets.EC2_SSH_KEY }}" > key-docker-ec2.pem
+        chmod 600 key-docker-ec2.pem
+
         # Conectar a la instancia EC2 y desplegar la aplicación
-        ssh -i "${{ secrets.EC2_SSH_KEY }}" -o StrictHostKeyChecking=no ec2-user@${{ secrets.EC2_HOST }} << EOF
-          # Instalar Docker si no está instalado
+        ssh -i "key-docker-ec2.pem" -o StrictHostKeyChecking=no ec2-user@${{ secrets.EC2_HOST }} << EOF
+          # Actualizar el sistema e instalar Docker si no está instalado
           sudo yum update -y
           sudo yum install -y docker
           sudo systemctl start docker
@@ -48,5 +52,8 @@ jobs:
 
           # Descargar la imagen desde Docker Hub y ejecutarla
           docker pull ${{ secrets.DOCKER_USERNAME }}/my-nginx-app:latest
-          docker run -d -p 80:80 ${{ secrets.DOCKER_USERNAME }}/my-nginx-app:latest
+          docker run -d -p 80:80 --name my-nginx-app ${{ secrets.DOCKER_USERNAME }}/my-nginx-app:latest
         EOF
+
+        # Eliminar el archivo temporal de la clave privada
+        rm -f key-docker-ec2.pem
