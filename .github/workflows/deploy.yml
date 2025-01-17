@@ -3,18 +3,18 @@ name: Build and Deploy Docker image to EC2
 on:
   push:
     branches:
-      - main  # Se ejecutará cuando hagas un push a la rama principal
+      - main
 
 jobs:
   build:
-    runs-on: ubuntu-latest  # Ejecutar en un entorno Ubuntu
+    runs-on: ubuntu-latest
 
     steps:
     # 1. Checkout el código del repositorio
     - name: Checkout repository
       uses: actions/checkout@v3
 
-    # 2. Configurar Docker Buildx (opcional, mejora la construcción)
+    # 2. Configurar Docker Buildx
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
 
@@ -38,7 +38,7 @@ jobs:
     # 6. Desplegar la imagen a EC2
     - name: Deploy to EC2
       run: |
-        # Crear un archivo temporal con el nombre correcto para la clave privada
+        # Crear un archivo temporal con la clave privada
         echo "${{ secrets.EC2_SSH_KEY }}" > key-docker-ec2.pem
         chmod 600 key-docker-ec2.pem
 
@@ -49,6 +49,12 @@ jobs:
           sudo yum install -y docker
           sudo systemctl start docker
           sudo systemctl enable docker
+
+          # Agregar ec2-user al grupo docker
+          sudo usermod -aG docker ec2-user
+
+          # Recargar permisos del grupo
+          newgrp docker
 
           # Descargar la imagen desde Docker Hub y ejecutarla
           docker pull ${{ secrets.DOCKER_USERNAME }}/my-nginx-app:latest
