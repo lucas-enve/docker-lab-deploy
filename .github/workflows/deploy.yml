@@ -1,0 +1,53 @@
+name: Build and Deploy to EC2 with Docker
+
+on:
+  push:
+    branches:
+      - main  # Ejecutar el flujo de trabajo cuando haya un push a la rama principal
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}  # Nombre de usuario de Docker Hub
+        password: ${{ secrets.DOCKER_PASSWORD }}  # Token de acceso de Docker Hub
+
+    - name: Build Docker image
+      run: |
+        docker build -t my-nginx-app .  # Construir la imagen de Docker
+
+    - name: Push Docker image to Docker Hub
+      run: |
+        docker tag my-nginx-app:latest ${{ secrets.DOCKER_USERNAME }}/my-nginx-app:latest
+        docker push ${{ secrets.DOCKER_USERNAME }}/my-nginx-app:latest  # Subir la imagen a Docker Hub
+
+    - name: Deploy to EC2
+      uses: appleboy/ssh-action@v0.1.0
+      with:
+        host: ${{ secrets.EC2_HOST }}  # IP pública de tu instancia EC2
+        username: ${{ secrets.EC2_USER }}  # Nombre de usuario para EC2 (normalmente ec2-user)
+        key: ${{ secrets.EC2_SSH_KEY }}  # Clave SSH privada para acceder a EC2
+        script: |
+          # Actualizar el sistema
+          sudo yum update -y
+          
+          # Instalar Docker en la instancia EC2 (si no está instalado)
+          sudo amazon-linux-extras install docker -y
+          sudo service docker start
+          sudo usermod -a -G docker ec2-user
+
+          # Hacer pull de la imagen desde Docker Hub
+          docker pull ${{ secrets.DOCKER_USERNAME }}/my-nginx-app:latest
+
+          # Ejecutar el contenedor Nginx
+          docker run -d -p 80:80 ${{ secrets.DOCKER_USERNAME }}/my-nginx-app:latest
