@@ -38,38 +38,8 @@ jobs:
     # 6. Desplegar la imagen a EC2
     - name: Deploy to EC2
       run: |
-        # Guarda la clave privada directamente en un archivo
-        echo "-----BEGIN RSA PRIVATE KEY-----
-MIIEpAIBAAKCAQEAwjyjvNL+STrgGohOTrgdzqlqY9voqwRMFGNm0NDISKDbOx/m
-k/OjaoFB3wIGgsXxmQo7df1sCp8tFfrzST5zy0rm+jRtBMdwptSIkV2v5eLk2kzk
-TIw8PGIwl0UouH4Yy1zZ8xEor1iu941TM8xq54a5O2cavIuK42ePdRT3kJkYQOHB
-5Hh9Khdb6HNZ6Clk6gMNmB+bb1OMwmWxW2RRqPGk9H2Szzis0hgggsleUng1qCk6
-Ri+4er6OTqViX7POsd1/iTEz4CnTpF3PQG2jdEe+90MjbNcFa4/DZrqXwdjL8BMS
-/uW6eYPwUFtUvIz17IWvr7+Z1FLuggfRDEbbCQIDAQABAoIBAA/ddh5ROZXvqihg
-o8zIOx8LNXZsmueFFVXA/L/nncRY5y9AHsxM5Tco0aGOf8uksWQnss2jYnTHpZ4a
-/k4oPLsJJi6fo5v1Ul0+FN2SwnBLhRfTmf4qoizodEGW04mmOw45SlARQbp4yunL
-cFVVyBGbLnwMouFtoG2MouoUSVhVFHj8T6qRbZsIVf/p3hSyyiYT626Hi+2Y0Dc0
-soQGcNk6HzN+ZAKlUtqSb+CYpwiZmTUgpUpmf8AfQ2HB1unzhjQJ+EfWe4Se0yEw
-FpGaBUuzmf0dfRNkJ0lEUMMbRkXgGZXCPtbfFw2lPfFMVopihQ+gBx2usrfzXl3S
-zlj3xZECgYEA4XDO8jusjl2Ext6ekqtbShM8NLZDdjmW/fuKwDo7KvwD3lXb2RqD
-k1Y2/GG4tN31eoB3gyIHWis9d87c2O2d8c43h88IMYpG1asRqcPUszUlFyw7Qa2x
-XRXR3+pH6nBXzvmUxoyT7qyNADH6C8TFbfqeQB7K0AuBt1hG0OjtGm0CgYEA3JEB
-IhC2f9/ArsFuuQ3975Cdvggesak+N3MrAxOg9JJ71uXok3H6Ooj4H3Dbf+6fPkC2
-hozajVbeUeUorZw+smUZQVZElhsMFaVbRTVoWsNfaAKH/gQlSldjBbUqQP2adMSS
-1Y0m5uGoeqNQ/CDnpa8vkPYEN1FBAxLvC+ncYY0CgYA7G5e23TyF6zEn7zCGZhU+
-W8K6U1tmwPy8xNoBQoNG5uKgxcQprRD4bW9nRrvl+BgnsU0kfaSN2K56Hiu7WLnD
-r3zRx89vJcEivoKYDzdScUmzRK6YrtDFBjaLzeJjLmdnZfrDABK9TlJ9zZywvzvA
-dShOyYQFfi7ZgnS2y4t3FQKBgQC8KqCS1Ts8YEDbVX4GNZ+bjv5jrj2xRzciywe4
-ujgoLgekT8NYdnYJFezHtdosjAAidcbBhsy0o5VKvHs1kQQT4Rfom5YrkKuAk+8H
-XgbG18I+01n9JMBDacW6itGfXDs2vrSdpqu3cG/xH/7o+ZFl0cx8mMUEBDe4TaDN
-wxcVyQKBgQC9G7kR0p2UpUrYp0eSqnyM9ZQe+tDdQuIeQZ445BT3tfKk97LlgrgZ
-Q9oCVvYfbtxTG+xoI2vHIZFJ5LkMpqnRWMh2betUr34BAUCqXlWv+oSrOdBRvylo
-jtaJHLXwmU6mVK/7XHmkf8dKp9opKVAslVrK14O+RGzIVpZHpS+Q/A==
------END RSA PRIVATE KEY---- > key-docker-ec2.pem
-        chmod 600 key-docker-ec2.pem
-
         # Conectar a la instancia EC2 y desplegar la aplicación
-        ssh -i "key-docker-ec2.pem" -o StrictHostKeyChecking=no ec2-user@${{ secrets.EC2_HOST }} << EOF
+        ssh -i "${{ secrets.EC2_SSH_KEY }}" -o StrictHostKeyChecking=no ec2-user@${{ secrets.EC2_HOST }} << EOF
           # Instalar Docker si no está instalado
           sudo yum update -y
           sudo yum install -y docker
